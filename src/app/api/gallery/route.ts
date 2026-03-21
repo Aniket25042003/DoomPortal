@@ -20,14 +20,15 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     const remixes = await getRemixesCollection();
+    const filter = { showInGallery: { $ne: false } };
     const [items, total] = await Promise.all([
       remixes
-        .find({})
+        .find(filter)
         .sort({ views: -1 })
         .skip(skip)
         .limit(limit)
         .toArray(),
-      remixes.countDocuments(),
+      remixes.countDocuments(filter),
     ]);
 
     const serialized = items.map((r: Remix) => ({

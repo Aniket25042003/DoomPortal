@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
       views: 0,
       createdAt: new Date(),
       promptUsed: `sin: ${sin.name}`,
+      showInGallery: userId === null,
     });
 
     return NextResponse.json({

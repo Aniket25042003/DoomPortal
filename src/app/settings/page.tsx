@@ -2,12 +2,14 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@/lib/session";
 import { getRemixesCollection } from "@/lib/db";
 import { Navbar } from "@/components/navbar";
-import { DashboardClient } from "./dashboard-client";
+import { SettingsClient } from "./settings-client";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
-export default async function DashboardPage() {
+export default async function SettingsPage() {
   const session = await getServerSession();
   if (!session?.user?.id) {
-    redirect("/auth?callbackUrl=/dashboard");
+    redirect("/auth?callbackUrl=/settings");
   }
 
   const remixes = await getRemixesCollection();
@@ -19,11 +21,8 @@ export default async function DashboardPage() {
   const serialized = items.map((r) => ({
     shortId: r.shortId,
     handle: r.handle,
-    platform: r.platform,
     sinId: r.sinId,
-    videoUrl: r.videoUrl,
-    thumbnailUrl: r.thumbnailUrl,
-    views: r.views,
+    showInGallery: r.showInGallery ?? false,
     createdAt: r.createdAt.toISOString(),
   }));
 
@@ -31,21 +30,21 @@ export default async function DashboardPage() {
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1 px-4 py-8">
-        <div className="container mx-auto">
+        <div className="container mx-auto max-w-2xl">
           <div className="mb-6">
-            <a href="/">
-              <button className="inline-flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+            <Link href="/">
+              <Button variant="ghost" size="sm">
                 ← Back to Home
-              </button>
-            </a>
+              </Button>
+            </Link>
           </div>
           <h1 className="font-heading text-3xl font-bold text-primary">
-            My Roasts
+            Settings
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Your saved roast videos. Download, share, or delete them.
+            Control which of your roasts appear in the public Trending Gallery.
           </p>
-          <DashboardClient initialRemixes={serialized} />
+          <SettingsClient remixes={serialized} />
         </div>
       </main>
     </div>

@@ -15,6 +15,7 @@ export interface Remix {
   views: number;
   createdAt: Date;
   promptUsed: string;
+  showInGallery: boolean;
 }
 
 export interface Sin {

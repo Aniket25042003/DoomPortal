@@ -58,10 +58,10 @@ export function Navbar() {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem
                     onSelect={() => {
-                      router.push("/dashboard");
+                      router.push("/settings");
                     }}
                   >
-                    Dashboard
+                    Settings
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => signOut()}
