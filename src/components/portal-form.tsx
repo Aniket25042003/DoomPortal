@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SinSelector } from "./sin-selector";
@@ -27,18 +27,51 @@ function analyzeHandle(handle: string): Sin {
   return SINS[index];
 }
 
+const POLL_INTERVAL_MS = 4000;
+const MAX_POLL_ATTEMPTS = 90;
+
+const LOADING_MESSAGES = [
+  "Fetching your profile pic...",
+  "Uploading to the doom dimension...",
+  "Magic Hour is rendering your fate...",
+  "Still rendering... this takes a minute or two...",
+  "Almost there... your roast is cooking...",
+  "The portal is almost open...",
+];
+
+function getLoadingMessage(elapsed: number): string {
+  if (elapsed < 5000) return LOADING_MESSAGES[0];
+  if (elapsed < 15000) return LOADING_MESSAGES[1];
+  if (elapsed < 30000) return LOADING_MESSAGES[2];
+  if (elapsed < 90000) return LOADING_MESSAGES[3];
+  if (elapsed < 180000) return LOADING_MESSAGES[4];
+  return LOADING_MESSAGES[5];
+}
+
 export function PortalForm() {
   const [handle, setHandle] = useState("");
   const [platform, setPlatform] = useState<Platform>("x");
   const [selectedSin, setSelectedSin] = useState<Sin | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
   const [result, setResult] = useState<{
     shortId: string;
     videoUrl: string;
     thumbnailUrl: string;
   } | null>(null);
+  const abortRef = useRef(false);
+  const startTimeRef = useRef(0);
 
   const cleanHandle = handle.replace(/^@/, "").trim();
+
+  useEffect(() => {
+    if (!loading) return;
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTimeRef.current;
+      setLoadingMessage(getLoadingMessage(elapsed));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const handleAnalyze = useCallback(() => {
     if (!cleanHandle) {
@@ -59,9 +92,12 @@ export function PortalForm() {
 
     setLoading(true);
     setResult(null);
+    abortRef.current = false;
+    startTimeRef.current = Date.now();
+    setLoadingMessage(LOADING_MESSAGES[0]);
 
     try {
-      const res = await fetch("/api/remix", {
+      const kickoffRes = await fetch("/api/remix", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -71,19 +107,71 @@ export function PortalForm() {
         }),
       });
 
-      const data = await res.json();
+      const kickoffData = await kickoffRes.json();
+      if (!kickoffRes.ok) {
+        throw new Error(kickoffData.error ?? "Failed to start video generation");
+      }
 
-      if (!res.ok) {
-        throw new Error(data.error ?? "Failed to create remix");
+      const { projectId, profileImageUrl } = kickoffData;
+
+      let downloadUrl: string | null = null;
+      for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
+        if (abortRef.current) throw new Error("Generation cancelled");
+
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+
+        const statusRes = await fetch(`/api/remix/status/${projectId}`);
+        const statusData = await statusRes.json();
+
+        if (!statusRes.ok) {
+          throw new Error(statusData.error ?? "Failed to check status");
+        }
+
+        if (statusData.status === "complete" && statusData.downloadUrl) {
+          downloadUrl = statusData.downloadUrl;
+          break;
+        }
+
+        if (statusData.status === "error") {
+          throw new Error(statusData.error ?? "Video generation failed");
+        }
+
+        if (statusData.status === "canceled") {
+          throw new Error("Video generation was canceled");
+        }
+      }
+
+      if (!downloadUrl) {
+        throw new Error("Video generation timed out — please try again");
+      }
+
+      const completeRes = await fetch("/api/remix/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId,
+          downloadUrl,
+          handle: cleanHandle,
+          platform,
+          sinId: selectedSin.id,
+          profileImageUrl,
+        }),
+      });
+
+      const completeData = await completeRes.json();
+      if (!completeRes.ok) {
+        throw new Error(completeData.error ?? "Failed to finalize remix");
       }
 
       setResult({
-        shortId: data.shortId,
-        videoUrl: data.videoUrl,
-        thumbnailUrl: data.thumbnailUrl,
+        shortId: completeData.shortId,
+        videoUrl: completeData.videoUrl,
+        thumbnailUrl: completeData.thumbnailUrl,
       });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      if (!abortRef.current) {
+        toast.error(err instanceof Error ? err.message : "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }
@@ -96,9 +184,7 @@ export function PortalForm() {
 
   if (loading) {
     return (
-      <PortalLoading
-        message="Fetching your real profile pic... Generating your 2050 roast..."
-      />
+      <PortalLoading message={loadingMessage} />
     );
   }
 

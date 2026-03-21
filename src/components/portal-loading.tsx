@@ -1,10 +1,21 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 interface PortalLoadingProps {
   message?: string;
 }
 
 export function PortalLoading({ message = "Opening the portal..." }: PortalLoadingProps) {
+  const [dots, setDots] = useState("");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? "" : prev + "."));
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="flex flex-col items-center justify-center gap-8 py-16">
       <div className="relative">
@@ -22,10 +33,10 @@ export function PortalLoading({ message = "Opening the portal..." }: PortalLoadi
       </div>
       <div className="space-y-2 text-center">
         <p className="font-heading text-lg font-semibold text-primary">
-          {message}
+          {message}{dots}
         </p>
         <p className="text-sm text-muted-foreground">
-          Generating your 2050 roast in &lt;25s...
+          Video generation usually takes 1–3 minutes
         </p>
       </div>
     </div>

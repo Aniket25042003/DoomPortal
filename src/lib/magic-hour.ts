@@ -58,54 +58,48 @@ export async function createImageToVideo(
   return data.id;
 }
 
-const POLL_INTERVAL_MS = 5000;
-const POLL_TIMEOUT_MS = 120000;
+export interface ProjectStatus {
+  status: "queued" | "rendering" | "complete" | "error" | "canceled" | "draft";
+  downloadUrl?: string;
+  error?: string;
+}
 
-export async function pollForCompletion(
+export async function checkProjectStatus(
   projectId: string
-): Promise<string> {
-  const startTime = Date.now();
+): Promise<ProjectStatus> {
+  const response = await fetch(
+    `${MAGIC_HOUR_API_BASE}/v1/video-projects/${projectId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${getApiKey()}`,
+        Accept: "application/json",
+      },
+    }
+  );
 
-  while (Date.now() - startTime < POLL_TIMEOUT_MS) {
-    const response = await fetch(
-      `${MAGIC_HOUR_API_BASE}/v1/video-projects/${projectId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${getApiKey()}`,
-          Accept: "application/json",
-        },
-      }
+  if (!response.ok) {
+    throw new Error(
+      `Magic Hour API error (${response.status}): ${await response.text()}`
     );
-
-    if (!response.ok) {
-      throw new Error(
-        `Magic Hour API error (${response.status}): ${await response.text()}`
-      );
-    }
-
-    const data = (await response.json()) as VideoProjectResponse;
-
-    if (data.status === "complete" && data.downloads?.length) {
-      const downloadUrl = data.downloads[0].url;
-      if (!downloadUrl) {
-        throw new Error("Magic Hour: No download URL in completed project");
-      }
-      return downloadUrl;
-    }
-
-    if (data.status === "error") {
-      const message = data.error?.message ?? "Video generation failed";
-      throw new Error(`Magic Hour: ${message}`);
-    }
-
-    if (data.status === "canceled") {
-      throw new Error("Magic Hour: Video generation was canceled");
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
   }
 
-  throw new Error("Magic Hour: Video generation timed out");
+  const data = (await response.json()) as VideoProjectResponse;
+
+  if (data.status === "complete" && data.downloads?.length) {
+    return {
+      status: "complete",
+      downloadUrl: data.downloads[0].url,
+    };
+  }
+
+  if (data.status === "error") {
+    return {
+      status: "error",
+      error: data.error?.message ?? "Video generation failed",
+    };
+  }
+
+  return { status: data.status };
 }
 
 export async function downloadVideo(downloadUrl: string): Promise<ArrayBuffer> {

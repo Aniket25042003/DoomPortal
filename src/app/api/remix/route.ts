@@ -1,21 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { createRemixSchema } from "@/validations/remix";
 import { getSinById, buildMagicHourPrompt } from "@/data/sins";
 import {
   fetchProfilePic,
   extensionForContentType,
 } from "@/lib/unavatar";
-import {
-  createImageToVideo,
-  pollForCompletion,
-  downloadVideo,
-} from "@/lib/magic-hour";
-import { uploadVideo, uploadImage } from "@/lib/blob";
-import { getRemixesCollection } from "@/lib/db";
-import { generateShortId } from "@/lib/short-id";
+import { createImageToVideo } from "@/lib/magic-hour";
+import { uploadImage } from "@/lib/blob";
 import { rateLimit } from "@/lib/rate-limit";
+
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,35 +61,10 @@ export async function POST(request: NextRequest) {
 
     const prompt = buildMagicHourPrompt(handle, sin);
     const projectId = await createImageToVideo(profileImageUrl, prompt);
-    const downloadUrl = await pollForCompletion(projectId);
-    const videoBuffer = await downloadVideo(downloadUrl);
-    const buffer = Buffer.from(videoBuffer);
-
-    const shortId = await generateShortId();
-    const filename = `remix-${shortId}.mp4`;
-    const videoUrl = await uploadVideo(filename, buffer);
-
-    const session = await auth.api.getSession({ headers: await headers() });
-    const userId = session?.user?.id ?? null;
-
-    const remixes = await getRemixesCollection();
-    await remixes.insertOne({
-      shortId,
-      userId,
-      handle: `@${handle}`,
-      platform,
-      sinId,
-      videoUrl,
-      thumbnailUrl: profileImageUrl,
-      views: 0,
-      createdAt: new Date(),
-      promptUsed: prompt,
-    });
 
     return NextResponse.json({
-      shortId,
-      videoUrl,
-      thumbnailUrl: profileImageUrl,
+      projectId,
+      profileImageUrl,
     });
   } catch (error) {
     console.error("Remix creation error:", error);
