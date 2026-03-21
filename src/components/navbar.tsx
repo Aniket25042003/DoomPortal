@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,7 +16,13 @@ export function Navbar() {
           href="/"
           className="flex items-center gap-2 font-heading text-xl font-bold tracking-tight text-primary"
         >
-          <span className="animate-wiggle inline-block">🕳️</span>
+          <Image
+            src="/app-icon.png"
+            alt=""
+            width={32}
+            height={32}
+            className="h-8 w-8 animate-wiggle rounded-lg object-contain"
+          />
           DoomPortal
         </Link>
 

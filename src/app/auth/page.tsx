@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getServerSession } from "@/lib/session";
 import { AuthPageClient } from "./auth-page-client";
@@ -17,8 +18,14 @@ export default async function AuthPage({
     <div className="flex min-h-[80vh] flex-col items-center justify-center px-4">
       <div className="w-full max-w-md space-y-8 text-center">
         <div>
-          <p className="text-4xl">🕳️</p>
-          <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-primary">
+          <Image
+            src="/app-icon.png"
+            alt=""
+            width={64}
+            height={64}
+            className="mx-auto rounded-xl object-contain"
+          />
+          <h1 className="mt-4 font-heading text-3xl font-bold tracking-tight text-primary">
             Enter the Portal
           </h1>
           <p className="mt-2 text-muted-foreground">

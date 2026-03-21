@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Navbar } from "@/components/navbar";
 
 export default function NotFound() {
@@ -6,7 +7,15 @@ export default function NotFound() {
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex flex-1 flex-col items-center justify-center px-4 text-center">
-        <p className="animate-float text-6xl">🕳️</p>
+        <div className="animate-float">
+          <Image
+            src="/app-icon.png"
+            alt=""
+            width={96}
+            height={96}
+            className="rounded-2xl object-contain"
+          />
+        </div>
         <h1 className="mt-4 font-heading text-5xl font-bold text-primary">
           404
         </h1>

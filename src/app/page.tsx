@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Navbar } from "@/components/navbar";
 import { PortalForm } from "@/components/portal-form";
 
@@ -8,7 +9,15 @@ export default function HomePage() {
       <main className="flex flex-1 flex-col items-center px-4 py-12">
         <div className="w-full max-w-3xl space-y-8 text-center">
           <div className="space-y-4">
-            <p className="animate-float text-5xl">🕳️</p>
+            <div className="animate-float mx-auto w-20">
+              <Image
+                src="/app-icon.png"
+                alt=""
+                width={80}
+                height={80}
+                className="rounded-2xl object-contain"
+              />
+            </div>
             <h1 className="animate-neon-flicker font-heading text-4xl font-bold tracking-tight text-primary sm:text-6xl">
               DoomPortal
             </h1>
