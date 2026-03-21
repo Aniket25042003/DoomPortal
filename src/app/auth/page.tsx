@@ -17,12 +17,12 @@ export default async function AuthPage({
     <div className="flex min-h-[80vh] flex-col items-center justify-center px-4">
       <div className="w-full max-w-md space-y-8 text-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Sign in to DoomPortal
+          <p className="text-4xl">🕳️</p>
+          <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-primary">
+            Enter the Portal
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Sign in to save your roasts to your library and access your
-            dashboard.
+            Sign in to save your roasts and build a personal hall of shame.
           </p>
         </div>
         <AuthPageClient callbackUrl={callbackUrl} />

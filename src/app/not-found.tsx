@@ -5,17 +5,23 @@ export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
-      <main className="flex flex-1 flex-col items-center justify-center px-4">
-        <h1 className="font-heading text-4xl font-bold text-primary">404</h1>
-        <p className="mt-2 text-muted-foreground">
-          This portal has collapsed. The remix you&apos;re looking for doesn&apos;t
-          exist.
+      <main className="flex flex-1 flex-col items-center justify-center px-4 text-center">
+        <p className="animate-float text-6xl">🕳️</p>
+        <h1 className="mt-4 font-heading text-5xl font-bold text-primary">
+          404
+        </h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          This portal collapsed into the void. Even your future self
+          can&apos;t find it.
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground/50">
+          Maybe you doom-scrolled past it?
         </p>
         <Link
           href="/"
-          className="mt-6 rounded-lg border border-primary/30 bg-primary/10 px-4 py-2 font-heading text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+          className="mt-8 rounded-lg border border-primary/30 bg-primary/10 px-6 py-3 font-heading text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
         >
-          Open a new portal
+          Open a new portal (if you dare)
         </Link>
       </main>
     </div>

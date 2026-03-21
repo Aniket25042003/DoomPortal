@@ -16,12 +16,15 @@ export default function GalleryPage() {
               </Button>
             </Link>
           </div>
-          <h1 className="font-heading text-3xl font-bold text-primary">
-            Trending Roasts
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            Top remixes by view count. Get inspired and create your own!
-          </p>
+          <div className="space-y-1">
+            <h1 className="font-heading text-3xl font-bold text-primary">
+              Wall of Shame
+            </h1>
+            <p className="text-muted-foreground">
+              These people got roasted by their future selves. Enjoy their
+              pain. Then make your own.
+            </p>
+          </div>
           <GalleryClient />
         </div>
       </main>

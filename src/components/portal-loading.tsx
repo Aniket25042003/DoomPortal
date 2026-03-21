@@ -102,8 +102,8 @@ export function PortalLoading({
             <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
               <p className="font-heading text-xs font-medium text-white/70">
                 {hasAiPreviews
-                  ? "AI previews — your video is rendering"
-                  : "Your profile pic — AI previews loading…"}
+                  ? "Sneak peek from the doom dimension"
+                  : "Target acquired — loading previews..."}
               </p>
               {allImages.length > 1 && (
                 <p className="font-heading text-xs text-white/50">
@@ -115,11 +115,10 @@ export function PortalLoading({
 
           {sinName && handle && (
             <p className="text-center text-sm text-muted-foreground">
-              Generating{" "}
+              Cooking up{" "}
               <span className="font-semibold text-primary">{handle}</span>
-              &apos;s{" "}
-              <span className="font-semibold text-primary">{sinName}</span>{" "}
-              roast video
+              &apos;s roast for being a{" "}
+              <span className="font-semibold text-destructive">{sinName}</span>
             </p>
           )}
         </div>
@@ -145,7 +144,7 @@ export function PortalLoading({
           {dots}
         </p>
         <p className="text-sm text-muted-foreground">
-          Video generation usually takes 2–4 minutes
+          Your future self is getting ready... this takes 2–4 minutes
         </p>
       </div>
     </div>

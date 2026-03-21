@@ -7,13 +7,20 @@ export default function HomePage() {
       <Navbar />
       <main className="flex flex-1 flex-col items-center px-4 py-12">
         <div className="w-full max-w-3xl space-y-8 text-center">
-          <div>
-            <h1 className="font-heading text-4xl font-bold tracking-tight text-primary sm:text-5xl">
+          <div className="space-y-4">
+            <p className="animate-float text-5xl">🕳️</p>
+            <h1 className="animate-neon-flicker font-heading text-4xl font-bold tracking-tight text-primary sm:text-6xl">
               DoomPortal
             </h1>
-            <p className="mt-3 text-lg text-muted-foreground">
-              Your 2050 holographic self teleports in to roast your worst
-              social media habit.
+            <p className="mx-auto max-w-lg text-lg text-muted-foreground">
+              Your future self from 2050 is{" "}
+              <span className="font-semibold text-destructive">fed up</span>{" "}
+              with your social media habits. They&apos;re coming through a
+              portal to roast you. There is no escape.
+            </p>
+            <p className="text-sm text-muted-foreground/60">
+              (Side effects may include existential dread, deleting your
+              accounts, and sending this to your friends)
             </p>
           </div>
           <PortalForm />

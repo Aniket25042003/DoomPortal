@@ -78,8 +78,11 @@ export function VideoPlayer({
 
       <div className="space-y-4">
         <h2 className="font-heading text-xl font-bold text-primary">
-          {handle}&apos;s 2050 Portal Roast – {sin.name}
+          {handle} got absolutely cooked for being a {sin.name}
         </h2>
+        <p className="text-sm text-muted-foreground">
+          Your future self said what your friends are too polite to say.
+        </p>
 
         <div className="flex flex-wrap gap-2">
           <Button onClick={handleDownload} variant="outline" size="sm" className="gap-2">

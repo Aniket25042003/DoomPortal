@@ -13,8 +13,9 @@ export function Navbar() {
       <div className="container flex h-14 items-center justify-between px-4">
         <Link
           href="/"
-          className="font-heading text-xl font-bold tracking-tight text-primary"
+          className="flex items-center gap-2 font-heading text-xl font-bold tracking-tight text-primary"
         >
+          <span className="animate-wiggle inline-block">🕳️</span>
           DoomPortal
         </Link>
 
@@ -23,7 +24,7 @@ export function Navbar() {
             href="/gallery"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
-            Gallery
+            Wall of Shame
           </Link>
 
           {isPending ? (

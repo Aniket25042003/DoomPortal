@@ -105,24 +105,25 @@ export function getSinById(id: string): Sin | undefined {
 
 export function buildVideoPrompt(handle: string, sin: Sin): string {
   return [
-    `A person is ${sin.visual}.`,
-    `A glowing neon portal tears open in front of them. They react with shock.`,
-    `A holographic version of themselves from the future steps out and says: "${sin.roast}"`,
-    `The person stares in stunned silence. The hologram steps back into the portal.`,
+    `Comedy skit: a person is caught ${sin.visual}.`,
+    `A ridiculous glowing time portal rips open. They freak out.`,
+    `An older, tired, fed-up version of THEMSELVES from the year 2050 steps out of the portal and angrily roasts them for their ${sin.name.toLowerCase()} habit.`,
+    `The future self says with comedic frustration: "${sin.roast}"`,
+    `The present-day person is left speechless and embarrassed. The future self shakes their head and walks back into the portal. Funny and absurd.`,
   ].join(" ");
 }
 
 const PREVIEW_PROMPTS = [
   (sin: Sin) =>
-    `A person ${sin.visual}. A glowing neon portal is tearing open behind them. They look shocked. Cinematic photo, dramatic lighting.`,
+    `Funny photo: a person caught red-handed ${sin.visual}. A glowing neon time portal is ripping open behind them. They look terrified. Dramatic lighting, cinematic, absurd comedy.`,
   (sin: Sin) =>
-    `A translucent holographic figure stepping out of a neon portal, pointing accusingly at a person who is ${sin.visual}. Dramatic lighting, cinematic still.`,
+    `Funny photo: an older, tired version of a person stepping out of a neon time portal, pointing angrily at their younger self who is ${sin.visual}. The future self looks fed up. Cinematic, dramatic, comedic.`,
   (sin: Sin) =>
-    `Close-up of a person with a guilty, shocked expression caught ${sin.visual}. Neon light from an off-screen portal casts colored shadows. Cinematic portrait.`,
+    `Funny close-up: a person with a hilariously guilty expression, caught ${sin.visual}. Neon portal light casts dramatic colored shadows on their face. They know they messed up. Cinematic portrait, comedy.`,
   (sin: Sin) =>
-    `A holographic figure from the future delivering a speech while a person sits stunned after being roasted for ${sin.name.toLowerCase()} behavior. Neon portal light, cinematic wide shot.`,
+    `Funny wide shot: an older future version of a person lecturing their younger self about being a ${sin.name.toLowerCase()}. The younger version looks embarrassed. Neon portal glow, cinematic, absurd comedy.`,
   (sin: Sin) =>
-    `A person sitting in devastated silence after being roasted by a hologram from the future. A collapsed neon portal fades behind them. Cinematic still, dramatic lighting.`,
+    `Funny photo: a person sitting in devastated silence after being roasted by their own future self. A fading neon portal behind them. They are questioning their life choices. Cinematic, comedic.`,
 ];
 
 export function buildPreviewPrompt(handle: string, sin: Sin, sceneIndex?: number): string {

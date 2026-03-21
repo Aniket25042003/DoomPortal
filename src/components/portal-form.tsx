@@ -34,13 +34,13 @@ const IMAGE_MAX_POLLS = 10;
 const IMAGE_GEN_INTERVAL_MS = 7000;
 
 const LOADING_MESSAGES = [
-  "Fetching your profile pic...",
-  "Uploading to the doom dimension...",
-  "Generating your roast video...",
-  "The portal is forming...",
-  "Your hologram is stepping out...",
-  "Delivering the roast...",
-  "Almost there...",
+  "Stalking your profile pic...",
+  "Uploading your face to the doom dimension...",
+  "Your 2050 self just cracked their knuckles...",
+  "Time portal warming up... smells like regret...",
+  "Future you is rehearsing their insults...",
+  "Writing a roast so devastating it bent spacetime...",
+  "Almost done... your future self is FURIOUS...",
 ];
 
 function getLoadingMessage(elapsed: number): string {
@@ -297,7 +297,7 @@ export function PortalForm() {
       <div className="space-y-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Input
-            placeholder="@username or full URL"
+            placeholder="@your_doomed_username"
             value={handle}
             onChange={(e) => {
               const v = e.target.value;
@@ -341,13 +341,13 @@ export function PortalForm() {
           onClick={handleAnalyze}
           className="text-muted-foreground"
         >
-          Analyze my handle
+          Let the algorithm judge me
         </Button>
       </div>
 
       <div className="space-y-4">
         <h3 className="font-heading text-sm font-semibold text-foreground">
-          Your Social Sin
+          Pick your worst habit (be honest, we already know)
         </h3>
         <SinSelector
           selectedSinId={selectedSin?.id ?? null}
@@ -358,10 +358,10 @@ export function PortalForm() {
       <Button
         type="submit"
         size="lg"
-        className="w-full animate-glitch font-heading"
+        className="w-full animate-glitch font-heading text-base"
         disabled={!cleanHandle || !selectedSin}
       >
-        Open the Portal
+        Summon Your Future Self (no turning back)
       </Button>
     </form>
   );
