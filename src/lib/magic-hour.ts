@@ -44,8 +44,8 @@ export async function createImageToVideo(
       Accept: "application/json",
     },
     body: JSON.stringify({
-      end_seconds: 16,
-      model: "kling-2.5",
+      end_seconds: 15,
+      model: "kling-3.0",
       resolution: "720p",
       audio: true,
       assets: {
