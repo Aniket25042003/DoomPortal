@@ -44,9 +44,9 @@ export async function createImageToVideo(
       Accept: "application/json",
     },
     body: JSON.stringify({
-      end_seconds: 5,
-      model: "kling-3.0",
-      resolution: "720p",
+      end_seconds: 48,
+      model: "veo3.1",
+      resolution: "1080p",
       audio: true,
       assets: {
         image_file_path: imageUrl,
@@ -136,8 +136,8 @@ export async function createPreviewImage(
       Accept: "application/json",
     },
     body: JSON.stringify({
-      image_count: 2,
-      model: "flux-schnell",
+      image_count: 1,
+      model: "nano-banana-2",
       aspect_ratio: "16:9",
       style: {
         prompt,

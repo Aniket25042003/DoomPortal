@@ -60,11 +60,11 @@ export async function POST(request: NextRequest) {
     );
 
     const videoPrompt = buildVideoPrompt(handle, sin);
-    const previewPrompt = buildPreviewPrompt(handle, sin);
+    const firstPreviewPrompt = buildPreviewPrompt(handle, sin, 0);
 
     const [projectId, previewProjectId] = await Promise.all([
       createImageToVideo(profileImageUrl, videoPrompt),
-      createPreviewImage(previewPrompt).catch(() => null),
+      createPreviewImage(firstPreviewPrompt).catch(() => null),
     ]);
 
     return NextResponse.json({

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface PortalLoadingProps {
   message?: string;
+  profileImageUrl?: string;
   previewImages?: string[];
   sinName?: string;
   handle?: string;
@@ -11,6 +12,7 @@ interface PortalLoadingProps {
 
 export function PortalLoading({
   message = "Opening the portal...",
+  profileImageUrl,
   previewImages = [],
   sinName,
   handle,
@@ -18,6 +20,8 @@ export function PortalLoading({
   const [dots, setDots] = useState("");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageCount, setImageCount] = useState(0);
+  const prevLengthRef = useRef(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -26,25 +30,45 @@ export function PortalLoading({
     return () => clearInterval(interval);
   }, []);
 
+  const allImages =
+    previewImages.length > 0
+      ? previewImages
+      : profileImageUrl
+        ? [profileImageUrl]
+        : [];
+
   useEffect(() => {
-    if (previewImages.length <= 1) return;
-    const interval = setInterval(() => {
+    if (previewImages.length > prevLengthRef.current && previewImages.length > 0) {
       setImageLoaded(false);
-      setActiveImageIndex((prev) => (prev + 1) % previewImages.length);
-    }, 4000);
-    return () => clearInterval(interval);
+      setActiveImageIndex(previewImages.length - 1);
+    }
+    prevLengthRef.current = previewImages.length;
   }, [previewImages.length]);
 
-  const showPreview = previewImages.length > 0;
+  useEffect(() => {
+    if (allImages.length <= 1) return;
+    const interval = setInterval(() => {
+      setImageLoaded(false);
+      setActiveImageIndex((prev) => (prev + 1) % allImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [allImages.length]);
+
+  useEffect(() => {
+    setImageCount(allImages.length);
+  }, [allImages.length]);
+
+  const hasImages = allImages.length > 0;
+  const isPreviewReady = previewImages.length > 0;
 
   return (
     <div className="flex flex-col items-center justify-center gap-6 py-8">
-      {showPreview ? (
+      {hasImages ? (
         <div className="w-full max-w-lg space-y-4">
           <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-primary/20 bg-black/50">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={previewImages[activeImageIndex]}
+              src={allImages[activeImageIndex] ?? allImages[0]}
               alt="Preview of your roast"
               className={`h-full w-full object-cover transition-opacity duration-700 ${
                 imageLoaded ? "opacity-100" : "opacity-0"
@@ -63,17 +87,27 @@ export function PortalLoading({
               </div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute bottom-3 left-3 right-3">
+            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
               <p className="font-heading text-xs font-medium text-white/70">
-                AI preview — your video is rendering
+                {isPreviewReady
+                  ? "AI preview — your video is rendering"
+                  : "Your profile pic — generating preview"}
               </p>
+              {imageCount > 1 && (
+                <p className="font-heading text-xs text-white/50">
+                  {Math.min(activeImageIndex + 1, imageCount)}/{imageCount}
+                </p>
+              )}
             </div>
           </div>
 
           {sinName && handle && (
             <p className="text-center text-sm text-muted-foreground">
-              Generating <span className="text-primary font-semibold">{handle}</span>&apos;s{" "}
-              <span className="text-primary font-semibold">{sinName}</span> roast video
+              Generating{" "}
+              <span className="font-semibold text-primary">{handle}</span>
+              &apos;s{" "}
+              <span className="font-semibold text-primary">{sinName}</span>{" "}
+              roast video
             </p>
           )}
         </div>
@@ -95,10 +129,11 @@ export function PortalLoading({
 
       <div className="space-y-2 text-center">
         <p className="font-heading text-lg font-semibold text-primary">
-          {message}{dots}
+          {message}
+          {dots}
         </p>
         <p className="text-sm text-muted-foreground">
-          Video generation usually takes 1–3 minutes
+          Crafting a 48-second cinematic roast — this takes 5–10 minutes
         </p>
       </div>
     </div>
