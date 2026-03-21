@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { completeRemixSchema } from "@/validations/remix";
 import { getSinById } from "@/data/sins";
 import { downloadVideo } from "@/lib/magic-hour";
 import { uploadVideo } from "@/lib/blob";
 import { getRemixesCollection } from "@/lib/db";
 import { generateShortId } from "@/lib/short-id";
+import { getServerSession } from "@/lib/session";
 
 export const maxDuration = 60;
 
@@ -39,7 +38,7 @@ export async function POST(request: NextRequest) {
     const filename = `remix-${shortId}.mp4`;
     const videoUrl = await uploadVideo(filename, buffer);
 
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await getServerSession();
     const userId = session?.user?.id ?? null;
 
     const remixes = await getRemixesCollection();

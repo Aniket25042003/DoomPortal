@@ -1,12 +1,11 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { getServerSession } from "@/lib/session";
 import { getRemixesCollection } from "@/lib/db";
 import { Navbar } from "@/components/navbar";
 import { DashboardClient } from "./dashboard-client";
 
 export default async function DashboardPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getServerSession();
   if (!session?.user?.id) {
     redirect("/auth?callbackUrl=/dashboard");
   }

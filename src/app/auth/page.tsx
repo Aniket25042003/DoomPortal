@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { getServerSession } from "@/lib/session";
 import { AuthPageClient } from "./auth-page-client";
 
 export default async function AuthPage({
@@ -8,10 +7,10 @@ export default async function AuthPage({
 }: {
   searchParams: Promise<{ callbackUrl?: string }>;
 }) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getServerSession();
   const { callbackUrl } = await searchParams;
   if (session) {
-    redirect(callbackUrl ?? "/dashboard");
+    redirect(callbackUrl ?? "/");
   }
 
   return (

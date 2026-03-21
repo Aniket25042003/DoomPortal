@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 
 export function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith("/dashboard")) {
-    const sessionCookie = request.cookies.get("better-auth.session_token");
-    if (!sessionCookie?.value) {
-      const url = new URL("/auth", request.url);
-      url.searchParams.set("callbackUrl", request.nextUrl.pathname);
-      return NextResponse.redirect(url);
-    }
+  const sessionCookie = getSessionCookie(request);
+  if (!sessionCookie) {
+    const url = new URL("/auth", request.url);
+    url.searchParams.set("callbackUrl", request.nextUrl.pathname);
+    return NextResponse.redirect(url);
   }
   return NextResponse.next();
 }

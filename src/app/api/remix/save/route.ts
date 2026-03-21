@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { viewRemixSchema } from "@/validations/remix";
 import { getRemixesCollection } from "@/lib/db";
+import { getServerSession } from "@/lib/session";
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await getServerSession();
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "You must be signed in to save to library" },
