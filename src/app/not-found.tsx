@@ -7,13 +7,13 @@ export default function NotFound() {
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex flex-1 flex-col items-center justify-center px-4 text-center">
-        <div className="animate-float">
+        <div className="animate-float overflow-hidden rounded-2xl bg-background">
           <Image
             src="/app-icon.png"
             alt=""
             width={96}
             height={96}
-            className="rounded-2xl object-contain"
+            className="object-contain"
           />
         </div>
         <h1 className="mt-4 font-heading text-5xl font-bold text-primary">

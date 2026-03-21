@@ -16,13 +16,15 @@ export function Navbar() {
           href="/"
           className="flex items-center gap-2 font-heading text-xl font-bold tracking-tight text-primary"
         >
-          <Image
-            src="/app-icon.png"
-            alt=""
-            width={32}
-            height={32}
-            className="h-8 w-8 animate-wiggle rounded-lg object-contain"
-          />
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-background">
+            <Image
+              src="/app-icon.png"
+              alt=""
+              width={32}
+              height={32}
+              className="h-8 w-8 animate-wiggle object-contain"
+            />
+          </span>
           DoomPortal
         </Link>
 

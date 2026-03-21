@@ -9,13 +9,13 @@ export default function HomePage() {
       <main className="flex flex-1 flex-col items-center px-4 py-12">
         <div className="w-full max-w-3xl space-y-8 text-center">
           <div className="space-y-4">
-            <div className="animate-float mx-auto w-20">
+            <div className="animate-float mx-auto w-20 overflow-hidden rounded-2xl bg-background">
               <Image
                 src="/app-icon.png"
                 alt=""
                 width={80}
                 height={80}
-                className="rounded-2xl object-contain"
+                className="object-contain"
               />
             </div>
             <h1 className="animate-neon-flicker font-heading text-4xl font-bold tracking-tight text-primary sm:text-6xl">

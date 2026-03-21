@@ -18,13 +18,15 @@ export default async function AuthPage({
     <div className="flex min-h-[80vh] flex-col items-center justify-center px-4">
       <div className="w-full max-w-md space-y-8 text-center">
         <div>
-          <Image
-            src="/app-icon.png"
-            alt=""
-            width={64}
-            height={64}
-            className="mx-auto rounded-xl object-contain"
-          />
+          <div className="mx-auto w-16 overflow-hidden rounded-xl bg-background">
+            <Image
+              src="/app-icon.png"
+              alt=""
+              width={64}
+              height={64}
+              className="object-contain"
+            />
+          </div>
           <h1 className="mt-4 font-heading text-3xl font-bold tracking-tight text-primary">
             Enter the Portal
           </h1>
