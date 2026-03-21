@@ -12,6 +12,18 @@ interface VideoProjectResponse {
   error?: { message: string; code?: string };
 }
 
+interface ImageProjectResponse {
+  id: string;
+  status: "queued" | "rendering" | "complete" | "error" | "canceled" | "draft";
+  downloads?: Array<{ url: string; expires_at?: string }>;
+  error?: { message: string; code?: string };
+}
+
+interface CreateImageResponse {
+  id: string;
+  credits_charged?: number;
+}
+
 function getApiKey(): string {
   const key = process.env.MAGIC_HOUR_API_KEY;
   if (!key) {
@@ -32,9 +44,10 @@ export async function createImageToVideo(
       Accept: "application/json",
     },
     body: JSON.stringify({
-      end_seconds: 11,
+      end_seconds: 5,
       model: "kling-3.0",
       resolution: "720p",
+      audio: true,
       assets: {
         image_file_path: imageUrl,
       },
@@ -110,4 +123,83 @@ export async function downloadVideo(downloadUrl: string): Promise<ArrayBuffer> {
     );
   }
   return response.arrayBuffer();
+}
+
+export async function createPreviewImage(
+  prompt: string
+): Promise<string> {
+  const response = await fetch(`${MAGIC_HOUR_API_BASE}/v1/ai-image-generator`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getApiKey()}`,
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      image_count: 2,
+      model: "flux-schnell",
+      aspect_ratio: "16:9",
+      style: {
+        prompt,
+        tool: "ai-photo-generator",
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(
+      `Magic Hour Image API error (${response.status}): ${errorBody}`
+    );
+  }
+
+  const data = (await response.json()) as CreateImageResponse;
+  if (!data.id) {
+    throw new Error("Magic Hour Image API did not return a project ID");
+  }
+  return data.id;
+}
+
+export interface ImageProjectStatus {
+  status: "queued" | "rendering" | "complete" | "error" | "canceled" | "draft";
+  imageUrls?: string[];
+  error?: string;
+}
+
+export async function checkImageProjectStatus(
+  projectId: string
+): Promise<ImageProjectStatus> {
+  const response = await fetch(
+    `${MAGIC_HOUR_API_BASE}/v1/image-projects/${projectId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${getApiKey()}`,
+        Accept: "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Magic Hour Image API error (${response.status}): ${await response.text()}`
+    );
+  }
+
+  const data = (await response.json()) as ImageProjectResponse;
+
+  if (data.status === "complete" && data.downloads?.length) {
+    return {
+      status: "complete",
+      imageUrls: data.downloads.map((d) => d.url),
+    };
+  }
+
+  if (data.status === "error") {
+    return {
+      status: "error",
+      error: data.error?.message ?? "Image generation failed",
+    };
+  }
+
+  return { status: data.status };
 }

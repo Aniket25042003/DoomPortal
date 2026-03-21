@@ -27,14 +27,15 @@ function analyzeHandle(handle: string): Sin {
   return SINS[index];
 }
 
-const POLL_INTERVAL_MS = 4000;
+const VIDEO_POLL_INTERVAL_MS = 4000;
+const PREVIEW_POLL_INTERVAL_MS = 2000;
 const MAX_POLL_ATTEMPTS = 90;
 
 const LOADING_MESSAGES = [
   "Fetching your profile pic...",
   "Uploading to the doom dimension...",
   "Magic Hour is rendering your fate...",
-  "Still rendering... this takes a minute or two...",
+  "Still rendering... hang tight...",
   "Almost there... your roast is cooking...",
   "The portal is almost open...",
 ];
@@ -54,6 +55,7 @@ export function PortalForm() {
   const [selectedSin, setSelectedSin] = useState<Sin | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [result, setResult] = useState<{
     shortId: string;
     videoUrl: string;
@@ -83,6 +85,26 @@ export function PortalForm() {
     toast.success(`Based on @${cleanHandle} we think you're a ${sin.name} 😉`);
   }, [cleanHandle]);
 
+  const pollPreviewImages = useCallback(async (previewProjectId: string) => {
+    for (let i = 0; i < 30; i++) {
+      if (abortRef.current) return;
+      await new Promise((r) => setTimeout(r, PREVIEW_POLL_INTERVAL_MS));
+
+      try {
+        const res = await fetch(`/api/remix/preview/${previewProjectId}`);
+        const data = await res.json();
+
+        if (data.status === "complete" && data.imageUrls?.length) {
+          setPreviewImages(data.imageUrls);
+          return;
+        }
+        if (data.status === "error" || data.status === "canceled") return;
+      } catch {
+        return;
+      }
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cleanHandle || !selectedSin) {
@@ -92,6 +114,7 @@ export function PortalForm() {
 
     setLoading(true);
     setResult(null);
+    setPreviewImages([]);
     abortRef.current = false;
     startTimeRef.current = Date.now();
     setLoadingMessage(LOADING_MESSAGES[0]);
@@ -112,13 +135,17 @@ export function PortalForm() {
         throw new Error(kickoffData.error ?? "Failed to start video generation");
       }
 
-      const { projectId, profileImageUrl } = kickoffData;
+      const { projectId, previewProjectId, profileImageUrl } = kickoffData;
+
+      if (previewProjectId) {
+        pollPreviewImages(previewProjectId);
+      }
 
       let downloadUrl: string | null = null;
       for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
         if (abortRef.current) throw new Error("Generation cancelled");
 
-        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        await new Promise((r) => setTimeout(r, VIDEO_POLL_INTERVAL_MS));
 
         const statusRes = await fetch(`/api/remix/status/${projectId}`);
         const statusData = await statusRes.json();
@@ -174,6 +201,7 @@ export function PortalForm() {
       }
     } finally {
       setLoading(false);
+      setPreviewImages([]);
     }
   };
 
@@ -184,7 +212,12 @@ export function PortalForm() {
 
   if (loading) {
     return (
-      <PortalLoading message={loadingMessage} />
+      <PortalLoading
+        message={loadingMessage}
+        previewImages={previewImages}
+        sinName={selectedSin?.name}
+        handle={`@${cleanHandle}`}
+      />
     );
   }
 

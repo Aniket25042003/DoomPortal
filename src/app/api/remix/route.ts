@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRemixSchema } from "@/validations/remix";
-import { getSinById, buildMagicHourPrompt } from "@/data/sins";
+import { getSinById, buildVideoPrompt, buildPreviewPrompt } from "@/data/sins";
 import {
   fetchProfilePic,
   extensionForContentType,
 } from "@/lib/unavatar";
-import { createImageToVideo } from "@/lib/magic-hour";
+import { createImageToVideo, createPreviewImage } from "@/lib/magic-hour";
 import { uploadImage } from "@/lib/blob";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -59,11 +59,17 @@ export async function POST(request: NextRequest) {
       profilePic.contentType
     );
 
-    const prompt = buildMagicHourPrompt(handle, sin);
-    const projectId = await createImageToVideo(profileImageUrl, prompt);
+    const videoPrompt = buildVideoPrompt(handle, sin);
+    const previewPrompt = buildPreviewPrompt(handle, sin);
+
+    const [projectId, previewProjectId] = await Promise.all([
+      createImageToVideo(profileImageUrl, videoPrompt),
+      createPreviewImage(previewPrompt).catch(() => null),
+    ]);
 
     return NextResponse.json({
       projectId,
+      previewProjectId,
       profileImageUrl,
     });
   } catch (error) {

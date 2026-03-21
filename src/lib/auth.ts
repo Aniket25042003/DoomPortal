@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { nextCookies } from "better-auth/next-js";
+import { dash } from "@better-auth/infra";
 import { getDbSync, getMongoClient } from "./db";
 
 const client = getMongoClient();
@@ -27,5 +28,10 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
   },
-  plugins: [nextCookies()],
+  plugins: [
+    nextCookies(),
+    dash({
+      apiKey: process.env.BETTER_AUTH_API_KEY,
+    }),
+  ],
 });
