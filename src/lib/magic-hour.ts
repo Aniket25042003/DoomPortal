@@ -44,8 +44,8 @@ export async function createImageToVideo(
       Accept: "application/json",
     },
     body: JSON.stringify({
-      end_seconds: 24,
-      model: "veo3.1",
+      end_seconds: 16,
+      model: "kling-2.5",
       resolution: "720p",
       audio: true,
       assets: {
@@ -137,11 +137,10 @@ export async function createPreviewImage(
     },
     body: JSON.stringify({
       image_count: 1,
-      model: "nano-banana-2",
+      model: "z-image-turbo",
       aspect_ratio: "16:9",
       style: {
         prompt,
-        tool: "ai-photo-generator",
       },
     }),
   });

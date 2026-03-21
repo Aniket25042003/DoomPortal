@@ -27,39 +27,48 @@ function analyzeHandle(handle: string): Sin {
   return SINS[index];
 }
 
-/** Reduced polling vs 200×6s. Async video needs multiple checks; a literal single poll would almost never succeed. */
-const VIDEO_POLL_INTERVAL_MS = 8000;
-const MAX_VIDEO_STATUS_POLLS = 45;
-
-const IMAGE_GEN_INTERVAL_MS = 6000;
-/** nano-banana-2 can take 60s+; poll immediately first, then every 2.5s, up to ~4 min per image */
-const IMAGE_POLL_INTERVAL_MS = 2500;
-const MAX_IMAGE_POLL_ATTEMPTS = 100;
+const VIDEO_POLL_MS = 5000;
+const VIDEO_MAX_POLLS = 60;
+const IMAGE_POLL_MS = 3000;
+const IMAGE_MAX_POLLS = 10;
+const IMAGE_GEN_INTERVAL_MS = 7000;
 
 const LOADING_MESSAGES = [
   "Fetching your profile pic...",
   "Uploading to the doom dimension...",
-  "Rendering your ~24s roast at 720p...",
-  "Writing your roast script from the future...",
-  "Your hologram is rehearsing its lines...",
-  "Filming Scene 1: catching you in the act...",
-  "Filming Scene 2: the portal rips open...",
-  "Filming Scene 3: the roast monologue...",
-  "Still rendering...",
+  "Generating your roast video...",
+  "The portal is forming...",
+  "Your hologram is stepping out...",
+  "Delivering the roast...",
   "Almost there...",
 ];
 
 function getLoadingMessage(elapsed: number): string {
   if (elapsed < 5000) return LOADING_MESSAGES[0];
   if (elapsed < 12000) return LOADING_MESSAGES[1];
-  if (elapsed < 25000) return LOADING_MESSAGES[2];
-  if (elapsed < 45000) return LOADING_MESSAGES[3];
-  if (elapsed < 70000) return LOADING_MESSAGES[4];
-  if (elapsed < 100000) return LOADING_MESSAGES[5];
-  if (elapsed < 140000) return LOADING_MESSAGES[6];
-  if (elapsed < 200000) return LOADING_MESSAGES[7];
-  if (elapsed < 300000) return LOADING_MESSAGES[8];
-  return LOADING_MESSAGES[9];
+  if (elapsed < 30000) return LOADING_MESSAGES[2];
+  if (elapsed < 60000) return LOADING_MESSAGES[3];
+  if (elapsed < 120000) return LOADING_MESSAGES[4];
+  if (elapsed < 180000) return LOADING_MESSAGES[5];
+  return LOADING_MESSAGES[6];
+}
+
+async function pollImageProject(projectId: string, signal: { aborted: boolean }): Promise<string | null> {
+  for (let i = 0; i < IMAGE_MAX_POLLS; i++) {
+    if (signal.aborted) return null;
+    try {
+      const res = await fetch(`/api/remix/preview/${projectId}`);
+      const data = await res.json();
+      if (data.status === "complete" && data.imageUrls?.length) {
+        return data.imageUrls[0] as string;
+      }
+      if (data.status === "error" || data.status === "canceled") return null;
+    } catch {
+      return null;
+    }
+    await new Promise((r) => setTimeout(r, IMAGE_POLL_MS));
+  }
+  return null;
 }
 
 export function PortalForm() {
@@ -77,8 +86,7 @@ export function PortalForm() {
   } | null>(null);
   const abortRef = useRef(false);
   const startTimeRef = useRef(0);
-  const imageGenCountRef = useRef(0);
-  const imageGenBusyRef = useRef(false);
+  const imageIdxRef = useRef(0);
 
   const cleanHandle = handle.replace(/^@/, "").trim();
 
@@ -91,92 +99,50 @@ export function PortalForm() {
     return () => clearInterval(interval);
   }, [loading]);
 
-  const pollSingleImage = useCallback(async (projectId: string): Promise<string | null> => {
-    for (let i = 0; i < MAX_IMAGE_POLL_ATTEMPTS; i++) {
-      if (abortRef.current) return null;
-
+  const generateOneImage = useCallback(
+    async (sin: Sin, handleStr: string, signal: { aborted: boolean }) => {
+      if (signal.aborted) return;
+      const idx = imageIdxRef.current;
+      imageIdxRef.current += 1;
+      const prompt = buildPreviewPrompt(handleStr, sin, idx);
       try {
-        const res = await fetch(`/api/remix/preview/${projectId}`);
-        const data = await res.json();
-
-        if (data.status === "complete" && data.imageUrls?.length) {
-          return data.imageUrls[0] as string;
-        }
-        if (data.status === "error" || data.status === "canceled") return null;
-      } catch {
-        return null;
-      }
-
-      if (i < MAX_IMAGE_POLL_ATTEMPTS - 1) {
-        await new Promise((r) => setTimeout(r, IMAGE_POLL_INTERVAL_MS));
-      }
-    }
-    return null;
-  }, []);
-
-  const generateAndCollectImage = useCallback(
-    async (sin: Sin, handleStr: string) => {
-      if (abortRef.current || imageGenBusyRef.current) return;
-      imageGenBusyRef.current = true;
-
-      try {
-        const sceneIdx = imageGenCountRef.current;
-        imageGenCountRef.current += 1;
-        const prompt = buildPreviewPrompt(handleStr, sin, sceneIdx);
-
         const res = await fetch("/api/remix/preview/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt }),
         });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          console.warn("Preview generate failed:", err);
-          return;
-        }
-
+        if (!res.ok) return;
         const { projectId } = await res.json();
         if (!projectId) return;
-
-        const imageUrl = await pollSingleImage(projectId);
-        if (imageUrl && !abortRef.current) {
-          setPreviewImages((prev) => [...prev, imageUrl]);
+        const url = await pollImageProject(projectId, signal);
+        if (url && !signal.aborted) {
+          setPreviewImages((prev) => [...prev, url]);
         }
-      } catch (e) {
-        console.warn("Preview image pipeline error:", e);
-      } finally {
-        imageGenBusyRef.current = false;
+      } catch {
+        /* non-critical */
       }
     },
-    [pollSingleImage]
+    []
   );
 
-  const startContinuousImageGen = useCallback(
-    (sin: Sin, handleStr: string, firstProjectId: string | null) => {
+  const startImageLoop = useCallback(
+    (sin: Sin, handleStr: string, firstProjectId: string | null, signal: { aborted: boolean }) => {
+      const run = async () => {
         if (firstProjectId) {
-        void (async () => {
-          const url = await pollSingleImage(firstProjectId);
-          if (url && !abortRef.current) {
+          const url = await pollImageProject(firstProjectId, signal);
+          if (url && !signal.aborted) {
             setPreviewImages((prev) => [...prev, url]);
           }
-        })();
-      }
-
-      void generateAndCollectImage(sin, handleStr);
-
-      const id = setInterval(() => {
-        if (abortRef.current) {
-          clearInterval(id);
-          return;
         }
-        void generateAndCollectImage(sin, handleStr);
-      }, IMAGE_GEN_INTERVAL_MS);
-
-      return () => {
-        clearInterval(id);
+        while (!signal.aborted) {
+          await generateOneImage(sin, handleStr, signal);
+          if (signal.aborted) break;
+          await new Promise((r) => setTimeout(r, IMAGE_GEN_INTERVAL_MS));
+        }
       };
+      void run();
     },
-    [pollSingleImage, generateAndCollectImage]
+    [generateOneImage]
   );
 
   const handleAnalyze = useCallback(() => {
@@ -201,12 +167,11 @@ export function PortalForm() {
     setPreviewImages([]);
     setProfileImageUrl(null);
     abortRef.current = false;
-    imageGenCountRef.current = 1;
-    imageGenBusyRef.current = false;
+    imageIdxRef.current = 1;
     startTimeRef.current = Date.now();
     setLoadingMessage(LOADING_MESSAGES[0]);
 
-    let stopImageGen: (() => void) | null = null;
+    const signal = { aborted: false };
 
     try {
       const kickoffRes = await fetch("/api/remix", {
@@ -227,19 +192,13 @@ export function PortalForm() {
       const { projectId, previewProjectId, profileImageUrl: pUrl } = kickoffData;
       setProfileImageUrl(pUrl);
 
-      stopImageGen = startContinuousImageGen(
-        selectedSin,
-        cleanHandle,
-        previewProjectId
-      );
+      startImageLoop(selectedSin, cleanHandle, previewProjectId, signal);
 
       let downloadUrl: string | null = null;
-      for (let attempt = 0; attempt < MAX_VIDEO_STATUS_POLLS; attempt++) {
+      for (let attempt = 0; attempt < VIDEO_MAX_POLLS; attempt++) {
         if (abortRef.current) throw new Error("Generation cancelled");
 
-        if (attempt > 0) {
-          await new Promise((r) => setTimeout(r, VIDEO_POLL_INTERVAL_MS));
-        }
+        await new Promise((r) => setTimeout(r, VIDEO_POLL_MS));
 
         const statusRes = await fetch(`/api/remix/status/${projectId}`);
         const statusData = await statusRes.json();
@@ -264,7 +223,7 @@ export function PortalForm() {
 
       if (!downloadUrl) {
         throw new Error(
-          "Video is still rendering — please wait a bit and tap Open the Portal again to retry."
+          "Video generation timed out — please try again"
         );
       }
 
@@ -297,7 +256,7 @@ export function PortalForm() {
       }
     } finally {
       abortRef.current = true;
-      stopImageGen?.();
+      signal.aborted = true;
       setLoading(false);
       setPreviewImages([]);
       setProfileImageUrl(null);

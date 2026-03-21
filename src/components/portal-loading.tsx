@@ -145,7 +145,7 @@ export function PortalLoading({
           {dots}
         </p>
         <p className="text-sm text-muted-foreground">
-          Rendering ~24s video at 720p — usually 3–8 minutes
+          Video generation usually takes 2–4 minutes
         </p>
       </div>
     </div>
