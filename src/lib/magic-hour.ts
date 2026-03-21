@@ -44,9 +44,9 @@ export async function createImageToVideo(
       Accept: "application/json",
     },
     body: JSON.stringify({
-      end_seconds: 48,
+      end_seconds: 24,
       model: "veo3.1",
-      resolution: "1080p",
+      resolution: "720p",
       audio: true,
       assets: {
         image_file_path: imageUrl,

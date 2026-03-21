@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 interface PortalLoadingProps {
   message?: string;
@@ -8,6 +8,22 @@ interface PortalLoadingProps {
   previewImages?: string[];
   sinName?: string;
   handle?: string;
+}
+
+function mergeImageUrls(
+  profileImageUrl: string | undefined,
+  previewImages: string[]
+): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const add = (u: string | undefined) => {
+    if (!u || seen.has(u)) return;
+    seen.add(u);
+    out.push(u);
+  };
+  add(profileImageUrl);
+  for (const u of previewImages) add(u);
+  return out;
 }
 
 export function PortalLoading({
@@ -20,8 +36,15 @@ export function PortalLoading({
   const [dots, setDots] = useState("");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageCount, setImageCount] = useState(0);
   const prevLengthRef = useRef(0);
+
+  const allImages = useMemo(
+    () => mergeImageUrls(profileImageUrl, previewImages),
+    [profileImageUrl, previewImages]
+  );
+
+  const aiPreviewCount = previewImages.length;
+  const hasAiPreviews = aiPreviewCount > 0;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -30,36 +53,24 @@ export function PortalLoading({
     return () => clearInterval(interval);
   }, []);
 
-  const allImages =
-    previewImages.length > 0
-      ? previewImages
-      : profileImageUrl
-        ? [profileImageUrl]
-        : [];
-
   useEffect(() => {
-    if (previewImages.length > prevLengthRef.current && previewImages.length > 0) {
+    if (allImages.length > prevLengthRef.current && allImages.length > 0) {
       setImageLoaded(false);
-      setActiveImageIndex(previewImages.length - 1);
+      setActiveImageIndex(allImages.length - 1);
     }
-    prevLengthRef.current = previewImages.length;
-  }, [previewImages.length]);
+    prevLengthRef.current = allImages.length;
+  }, [allImages.length]);
 
   useEffect(() => {
     if (allImages.length <= 1) return;
     const interval = setInterval(() => {
       setImageLoaded(false);
       setActiveImageIndex((prev) => (prev + 1) % allImages.length);
-    }, 5000);
+    }, 6000);
     return () => clearInterval(interval);
   }, [allImages.length]);
 
-  useEffect(() => {
-    setImageCount(allImages.length);
-  }, [allImages.length]);
-
   const hasImages = allImages.length > 0;
-  const isPreviewReady = previewImages.length > 0;
 
   return (
     <div className="flex flex-col items-center justify-center gap-6 py-8">
@@ -68,6 +79,7 @@ export function PortalLoading({
           <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-primary/20 bg-black/50">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
+              key={allImages[activeImageIndex] ?? "slide"}
               src={allImages[activeImageIndex] ?? allImages[0]}
               alt="Preview of your roast"
               className={`h-full w-full object-cover transition-opacity duration-700 ${
@@ -89,13 +101,13 @@ export function PortalLoading({
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
               <p className="font-heading text-xs font-medium text-white/70">
-                {isPreviewReady
-                  ? "AI preview — your video is rendering"
-                  : "Your profile pic — generating preview"}
+                {hasAiPreviews
+                  ? "AI previews — your video is rendering"
+                  : "Your profile pic — AI previews loading…"}
               </p>
-              {imageCount > 1 && (
+              {allImages.length > 1 && (
                 <p className="font-heading text-xs text-white/50">
-                  {Math.min(activeImageIndex + 1, imageCount)}/{imageCount}
+                  {activeImageIndex + 1}/{allImages.length}
                 </p>
               )}
             </div>
@@ -133,7 +145,7 @@ export function PortalLoading({
           {dots}
         </p>
         <p className="text-sm text-muted-foreground">
-          Crafting a 48-second cinematic roast — this takes 5–10 minutes
+          Rendering ~24s video at 720p — usually 3–8 minutes
         </p>
       </div>
     </div>

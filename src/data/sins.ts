@@ -105,11 +105,11 @@ export function getSinById(id: string): Sin | undefined {
 
 export function buildVideoPrompt(handle: string, sin: Sin): string {
   return [
-    `A cinematic, photorealistic video that tells a comedic story.`,
-    `SCENE 1 (0-8 seconds): A real person is ${sin.visual}. Establish the scene with a slow cinematic camera push-in, showing the environment and the person's absurd behavior in detail. Ambient sounds of the environment.`,
-    `SCENE 2 (8-18 seconds): Suddenly a glowing neon portal with swirling cyan and magenta energy particles rips open in the air right in front of them. The person reacts with genuine shock — they stumble back, their jaw drops, eyes go wide. The portal crackles with electricity and hums with energy. Dramatic lighting shift as the portal illuminates the room.`,
-    `SCENE 3 (18-40 seconds): A holographic translucent version of the same person from the year 2050 steps out of the portal, glowing with subtle digital scan lines. The hologram looks exhausted and fed up. The hologram speaks directly to the person and to camera with increasing frustration and comedic timing, delivering this roast monologue with attitude, pauses, and emphasis: "${sin.roast}"`,
-    `SCENE 4 (40-48 seconds): The person stares in stunned silence, mouth open. The hologram shakes its head in disappointment, steps back into the portal which collapses shut with a flash. The person sits there processing what just happened, then slowly picks up their phone again. Cut to black.`,
+    `A cinematic, photorealistic video that tells a comedic story in about 24 seconds total.`,
+    `SCENE 1 (0-6 seconds): A real person is ${sin.visual}. Establish the scene with a slow cinematic camera push-in, showing the environment and the person's absurd behavior in detail. Ambient sounds of the environment.`,
+    `SCENE 2 (6-12 seconds): Suddenly a glowing neon portal with swirling cyan and magenta energy particles rips open in the air right in front of them. The person reacts with genuine shock — they stumble back, their jaw drops, eyes go wide. The portal crackles with electricity and hums with energy. Dramatic lighting shift as the portal illuminates the room.`,
+    `SCENE 3 (12-20 seconds): A holographic translucent version of the same person from the year 2050 steps out of the portal, glowing with subtle digital scan lines. The hologram looks exhausted and fed up. The hologram speaks directly to the person and to camera with increasing frustration and comedic timing, delivering this roast monologue with attitude, pauses, and emphasis (summarize and hit the funniest beats if needed for time): "${sin.roast}"`,
+    `SCENE 4 (20-24 seconds): The person stares in stunned silence, mouth open. The hologram shakes its head in disappointment, steps back into the portal which collapses shut with a flash. The person sits there processing what just happened, then slowly picks up their phone again. Cut to black.`,
     `Photorealistic cinematography throughout. Natural skin textures, realistic hair movement, cloth physics. Dramatic neon rim lighting in cyan and hot pink. Shallow depth of field, subtle lens flares. Ambient environmental audio with clearly spoken dialogue. Cinematic color grading with deep shadows and vibrant neon highlights. 24fps film feel with subtle grain.`,
   ].join(" ");
 }
